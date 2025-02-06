@@ -4,9 +4,10 @@ import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { ZodValidationPipe } from 'nestjs-zod';
 import { APP_PIPE } from '@nestjs/core';
+import { CrawlerModule } from './crawler/crawler.module';
 
 @Module({
-  imports: [UserModule],
+  imports: [UserModule, CrawlerModule],
   controllers: [AppController],
   providers: [
     AppService,
