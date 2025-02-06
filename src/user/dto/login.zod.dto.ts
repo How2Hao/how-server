@@ -4,7 +4,7 @@ import { z } from 'zod';
 const CredentialsSchema = z.object({
   username: z.string(),
   password: z
-    .string()
+    .number()
     .min(6, { message: 'Password must be at least 6 characters long.' }),
 });
 
