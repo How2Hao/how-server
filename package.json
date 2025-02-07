@@ -24,6 +24,9 @@
     "psa:format": "prisma format"
   },
   "dependencies": {
+    "@langchain/community": "^0.3.29",
+    "@langchain/core": "^0.3.38",
+    "@langchain/openai": "^0.4.2",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/mapped-types": "*",
@@ -31,6 +34,7 @@
     "@nestjs/schedule": "^5.0.1",
     "@prisma/client": "^6.3.1",
     "cheerio": "^1.0.0",
+    "langchain": "^0.3.15",
     "nestjs-zod": "^4.2.0",
     "prisma": "^6.3.1",
     "reflect-metadata": "^0.2.2",
