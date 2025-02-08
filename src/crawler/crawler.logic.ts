@@ -53,7 +53,7 @@ export class CrawlerLogic {
     this.logger.log('开始执行Ai分析标题任务...');
     console.time('aiAnalysisTitleByLangchin');
     const model = new ChatOpenAI({
-      modelName: 'internlm/internlm2_5-7b-chat',
+      modelName: 'Qwen/Qwen2.5-7B-Instruct',
       configuration: {
         baseURL: 'https://api.siliconflow.cn/v1',
         apiKey: this.apiKey,
@@ -64,7 +64,7 @@ export class CrawlerLogic {
       '你是一个文章分类系统，你的任务是根据文章标题{title}给出这个文章的信息。\n{instructions}',
     );
     const schema = z.object({
-      type: z.string().describe('文章的类型'),
+      type: z.enum(['银行卡', '微信', '支付宝']).describe('文章的类型'),
       area: z.string().nullable().describe('活动的地点'),
     });
 
