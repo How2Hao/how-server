@@ -12,6 +12,24 @@ export class CrawlerLogic {
   private readonly config = new ConfigService();
   private readonly apiKey = this.config.get<string>('SF_API_KEY');
 
+  /**
+   * 通过HTML地址获取页面内容
+   */
+  async getHtml(url: string) {
+    const res = await fetch(url);
+    const arrayBuffer = await res.arrayBuffer();
+    const html = new TextDecoder('gbk').decode(arrayBuffer);
+    return load(html);
+  }
+  /**
+   * 模拟登录
+   */
+  async login() {
+    const $ = await this.getHtml(
+      'http://www.zuanke8.com/member.php?mod=logging&action=login',
+    );
+  }
+
   async run() {
     this.logger.log('开始执行爬虫任务...');
     try {
