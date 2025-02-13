@@ -6,12 +6,20 @@ import { ChatOpenAI } from '@langchain/openai';
 import { z } from 'zod';
 import { OpenAI } from 'openai';
 import { ConfigService } from '@nestjs/config';
-import crypto from 'crypto';
+import { md5Encrypt } from 'src/utils';
+import { Parser } from 'xml2js';
+import JSON5 from 'json5';
 
 export class CrawlerLogic {
   private readonly logger = new Logger(CrawlerLogic.name);
   private readonly config = new ConfigService();
+  private readonly xmlParser = new Parser({
+    explicitArray: false,
+    trim: true,
+  });
   private readonly apiKey = this.config.get<string>('SF_API_KEY');
+  private Cookie: string[];
+  private HOST: string = 'http://www.zuanke8.com/';
 
   /**
    * 通过HTML地址获取页面内容
@@ -22,19 +30,6 @@ export class CrawlerLogic {
     const html = new TextDecoder(label).decode(arrayBuffer);
     return load(html);
   }
-  /**
-   * md加密
-   */
-  md5Encrypt(input: string) {
-    // 创建一个 MD5 哈希对象
-    const hash = crypto.createHash('md5');
-
-    // 更新哈希对象的内容（输入需要是字符串或 Buffer）
-    hash.update(input);
-
-    // 计算并返回加密后的结果（以十六进制格式输出）
-    return hash.digest('hex');
-  }
 
   /**
    * 模拟登录
@@ -44,22 +39,17 @@ export class CrawlerLogic {
       'http://www.zuanke8.com/member.php?mod=logging&action=login',
     );
     const parmas = $('form[name="login"]').attr('action');
-    console.log(parmas);
-    const body = {
-      formhash: $('input[name="formhash"]').val(),
-      referer: 'http://www.zuanke8.com/',
-      loginfield: 'username',
-      username: 'flippedround',
-      password: this.md5Encrypt('zy500233'),
-      questionid: '7',
-      answer: '0010',
-    };
+
     const formData = new URLSearchParams();
-    for (const key in body) {
-      formData.append(key, body[key]);
-    }
-    console.log(body);
-    const res = await fetch('http://www.zuanke8.com/' + parmas, {
+    formData.append('formhash', $('input[name="formhash"]').val() as string);
+    formData.append('referer', 'http://www.zuanke8.com/');
+    formData.append('loginfield', 'username');
+    formData.append('username', 'flippedround');
+    formData.append('password', md5Encrypt('zy500233'));
+    formData.append('questionid', '7');
+    formData.append('answer', '0010');
+
+    const res = await fetch(this.HOST + parmas, {
       method: 'POST',
       body: formData.toString(),
       headers: {
@@ -67,7 +57,8 @@ export class CrawlerLogic {
       },
       redirect: 'manual',
     });
-    console.log(res.headers.getSetCookie());
+
+    this.Cookie = res.headers.getSetCookie();
   }
 
   async run() {
@@ -98,6 +89,69 @@ export class CrawlerLogic {
     } catch (error) {
       this.logger.error('爬虫任务失败', error);
     }
+  }
+
+  /**
+   * 轮询获取数据
+   */
+  async polling() {
+    this.logger.log('开始执行轮询任务...');
+    const baseUrl = new URL('http://www.zuanke8.com/forum.php');
+    const time = Math.floor((Date.now() - 60000) / 1000).toString();
+    const params = new URLSearchParams({
+      mod: 'ajax',
+      action: 'forumchecknew',
+      fid: '15',
+      time,
+      inajax: 'yes',
+    });
+
+    // 将查询参数附加到 URL
+    baseUrl.search = params.toString();
+    const res = await fetch(baseUrl.toString());
+    const text = await res.text();
+    const data = await this.xmlParser.parseStringPromise(text);
+    this.logger.log('获取到' + data.root + '条数据');
+    if (data.root !== '0') this.getUpdateContent(time);
+  }
+
+  /**
+   * 获取更新内容
+   */
+  async getUpdateContent(time: string) {
+    this.logger.log('开始执行获取更新内容任务...');
+    const baseUrl = new URL('http://www.zuanke8.com/forum.php');
+    const params = new URLSearchParams({
+      mod: 'ajax',
+      action: 'forumchecknew',
+      fid: '15',
+      time,
+      uncheck: '1',
+      inajax: '1',
+      ajaxtarget: 'forumnew',
+    });
+    baseUrl.search = params.toString();
+    const res = await fetch(baseUrl.toString());
+    const arrayBuffer = await res.arrayBuffer();
+    const text = new TextDecoder('gbk').decode(arrayBuffer);
+    const data = await this.xmlParser.parseStringPromise(text);
+    const cdataContent = data.root as string;
+    const regex = /newthread\[\d+\]\s*=\s*(\{.*?})\s*;/gs;
+    const threads: any[] = [];
+    let match;
+
+    while ((match = regex.exec(cdataContent)) !== null) {
+      const objStr = match[1];
+      try {
+        // 使用JSON5解析宽松格式的JS对象
+        const thread = JSON5.parse(objStr);
+        threads.push(thread);
+      } catch (e) {
+        console.error('解析失败:', e);
+      }
+    }
+
+    console.log(threads); // 输出解析结果
   }
 
   /**
