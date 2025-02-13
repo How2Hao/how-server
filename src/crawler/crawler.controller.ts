@@ -8,7 +8,7 @@ export class CrawlerController {
 
   @Get('run')
   runCrawler() {
-    this.crawlerService.run(); // 手动触发爬虫任务
+    this.crawlerService.login(); // 手动触发爬虫任务
     return 'Crawler task started!';
   }
 }

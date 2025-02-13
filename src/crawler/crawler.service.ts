@@ -22,4 +22,7 @@ export class CrawlerService {
     //   '广州民生借记卡2元立减金',
     // );
   }
+  async login() {
+    await this.crawlerLogic.login();
+  }
 }
