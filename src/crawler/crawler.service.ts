@@ -9,7 +9,7 @@ export class CrawlerService {
     private readonly crawlerLogic: CrawlerLogic,
     private configService: ConfigService,
   ) {}
-  @Cron(CronExpression.EVERY_MINUTE) // 每分钟执行一次
+  // @Cron(CronExpression.EVERY_MINUTE) // 每分钟执行一次
   async handleCron() {
     await this.crawlerLogic.polling();
   }
@@ -23,6 +23,6 @@ export class CrawlerService {
     // );
   }
   async login() {
-    await this.crawlerLogic.polling();
+    await this.crawlerLogic.run();
   }
 }

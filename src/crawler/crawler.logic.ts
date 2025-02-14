@@ -9,6 +9,14 @@ import { ConfigService } from '@nestjs/config';
 import { md5Encrypt } from 'src/utils';
 import { Parser } from 'xml2js';
 import JSON5 from 'json5';
+import { URL } from 'node:url';
+
+interface ListType {
+  title: string;
+  href: string;
+  time: string;
+  tid: string;
+}
 
 export class CrawlerLogic {
   private readonly logger = new Logger(CrawlerLogic.name);
@@ -18,6 +26,7 @@ export class CrawlerLogic {
     trim: true,
   });
   private readonly apiKey = this.config.get<string>('SF_API_KEY');
+  private readonly UserAgent = `Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/133.0.0.0`;
   private Cookie: string[];
   private HOST: string = 'http://www.zuanke8.com/';
 
@@ -63,32 +72,33 @@ export class CrawlerLogic {
 
   async run() {
     this.logger.log('开始执行爬虫任务...');
-    try {
-      const $ = await this.getHtml('http://www.zuanke8.com/forum-15-1.html');
-      const list: any[] = [];
-      $('tbody tr').each((_index, item) => {
-        const newItem = $(item).find('.new a');
-        if (newItem.length > 0) {
-          const titleInfo = newItem.map((_index, item) => {
-            return {
-              title: $(item).text(),
-              href: $(item).attr('href'),
-            };
-          })[0];
-
-          const createTime = $(item).find('em span').text();
-          list.push({
-            ...titleInfo,
-            createTime,
-          });
-        }
+    const res = await fetch(
+      'http://www.zuanke8.com/forum.php?mod=forumdisplay&fid=15&orderby=dateline&orderby=dateline&filter=author&mobile=2&page=1',
+      {
+        method: 'GET',
+        headers: {
+          'User-Agent': this.UserAgent,
+        },
+      },
+    );
+    const html = await res.text();
+    const $ = load(html);
+    const list: ListType[] = [];
+    $('.subject_1').each((_index, item) => {
+      const href = this.HOST + $(item).find('a').attr('href')!;
+      const tid = new URL(href).searchParams.get('tid')!;
+      list.push({
+        title: $(item)
+          .find('h1')
+          .text()
+          .replace($(item).find('em.pic').text(), '')
+          .trim(),
+        href,
+        // @ts-expect-error 真的有data
+        time: $(item).find('p.pl > span.pipe').get(0)?.nextSibling?.data.trim(),
+        tid,
       });
-
-      console.log(list);
-      // console.log(.text());
-    } catch (error) {
-      this.logger.error('爬虫任务失败', error);
-    }
+    });
   }
 
   /**
@@ -112,7 +122,8 @@ export class CrawlerLogic {
     const text = await res.text();
     const data = await this.xmlParser.parseStringPromise(text);
     this.logger.log('获取到' + data.root + '条数据');
-    if (data.root !== '0') this.getUpdateContent(time);
+    console.log(time);
+    this.getUpdateContent(time);
   }
 
   /**
