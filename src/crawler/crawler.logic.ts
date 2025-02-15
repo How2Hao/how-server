@@ -15,7 +15,7 @@ interface ListType {
   title: string;
   href: string;
   time: string;
-  tid: string;
+  tid: number;
 }
 
 export class CrawlerLogic {
@@ -29,6 +29,15 @@ export class CrawlerLogic {
   private readonly UserAgent = `Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/133.0.0.0`;
   private Cookie: string[];
   private HOST: string = 'http://www.zuanke8.com/';
+
+  private readonly model = new ChatOpenAI({
+    modelName: 'Qwen/Qwen2.5-7B-Instruct',
+    temperature: 0.0,
+    configuration: {
+      baseURL: 'https://api.siliconflow.cn/v1',
+      apiKey: this.apiKey,
+    },
+  });
 
   /**
    * 通过HTML地址获取页面内容
@@ -83,21 +92,54 @@ export class CrawlerLogic {
     );
     const html = await res.text();
     const $ = load(html);
+    const items = $('.subject_1').toArray();
+
     const list: ListType[] = [];
-    $('.subject_1').each((_index, item) => {
+    for (const item of items) {
+      const title = $(item)
+        .find('h1')
+        .text()
+        .replace($(item).find('em.pic').text(), '')
+        .trim();
+      const { isMoneyRelated } = await this.checkIsActiveByAI(title);
+      if (!isMoneyRelated) {
+        continue;
+      }
       const href = this.HOST + $(item).find('a').attr('href')!;
-      const tid = new URL(href).searchParams.get('tid')!;
+      const tid =
+        (new URL(href).searchParams.get('tid') as unknown as number) | 0;
       list.push({
-        title: $(item)
-          .find('h1')
-          .text()
-          .replace($(item).find('em.pic').text(), '')
-          .trim(),
+        title,
         href,
         // @ts-expect-error 真的有data
         time: $(item).find('p.pl > span.pipe').get(0)?.nextSibling?.data.trim(),
         tid,
       });
+    }
+    console.log(list);
+  }
+  /**
+   * 检测是否是为活动
+   */
+  async checkIsActiveByAI(title: string) {
+    this.logger.log(`开始执行检测：${title}`);
+    const outputParser = StructuredOutputParser.fromZodSchema(
+      z.object({
+        isMoneyRelated: z.boolean().describe('是否包含赚钱信息'),
+      }),
+    );
+    const promptTemplate = new PromptTemplate({
+      template: `你是一个分享赚钱活动的论坛分类系统，请根据标题判断是否包含赚钱信息。
+      请严格按格式返回JSON：{instructions}
+
+      标题：{title}
+      `,
+      inputVariables: ['title', 'instructions'],
+    });
+    const chain = promptTemplate.pipe(this.model).pipe(outputParser);
+    return await chain.invoke({
+      title,
+      instructions: outputParser.getFormatInstructions(),
     });
   }
 
@@ -197,36 +239,5 @@ export class CrawlerLogic {
     console.log(res);
     console.timeEnd('aiAnalysisTitleByLangchin');
     return res;
-  }
-  async aiAnalysisTitleBySiliconflow(title: string) {
-    console.time('aiAnalysisTitleBySiliconflow');
-    const client = new OpenAI({
-      baseURL: 'https://api.siliconflow.cn/v1',
-      apiKey: 'sk-ytxtsnfaqzbdocykbvcbttuehzzscytubvczewvwnezueodx',
-    });
-
-    const res = await client.chat.completions.create({
-      model: 'Qwen/Qwen2.5-7B-Instruct',
-      messages: [
-        {
-          role: 'system',
-          content:
-            '你是一个文章分类系统，你的任务是根据文章标题给出这个文章的信息。',
-        },
-        {
-          role: 'assistant',
-          content: `Please respond in the format {"type": ..., "area": ...}`,
-        },
-        {
-          role: 'user',
-          content: `文章标题是：${title}`,
-        },
-      ],
-      response_format: {
-        type: 'json_object',
-      },
-    });
-    console.log(res.choices[0].message.content);
-    console.timeEnd('aiAnalysisTitleBySiliconflow');
   }
 }
