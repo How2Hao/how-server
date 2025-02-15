@@ -4,7 +4,6 @@ import { StructuredOutputParser } from '@langchain/core/output_parsers';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { ChatOpenAI } from '@langchain/openai';
 import { z } from 'zod';
-import { OpenAI } from 'openai';
 import { ConfigService } from '@nestjs/config';
 import { md5Encrypt } from 'src/utils';
 import { Parser } from 'xml2js';
@@ -21,15 +20,16 @@ interface ListType {
 export class CrawlerLogic {
   private readonly logger = new Logger(CrawlerLogic.name);
   private readonly config = new ConfigService();
+
+  private readonly apiKey = this.config.get<string>('SF_API_KEY');
+  private readonly UserAgent = `Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/133.0.0.0`;
+  private readonly HOST: string = 'http://www.zuanke8.com/';
+  private Cookie: string[];
+
   private readonly xmlParser = new Parser({
     explicitArray: false,
     trim: true,
   });
-  private readonly apiKey = this.config.get<string>('SF_API_KEY');
-  private readonly UserAgent = `Mozilla/5.0 (iPhone; CPU iPhone OS 16_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1 Edg/133.0.0.0`;
-  private Cookie: string[];
-  private HOST: string = 'http://www.zuanke8.com/';
-
   private readonly model = new ChatOpenAI({
     modelName: 'Qwen/Qwen2.5-7B-Instruct',
     temperature: 0.0,
