@@ -125,11 +125,11 @@ export class CrawlerLogic {
     this.logger.log(`开始执行检测：${title}`);
     const outputParser = StructuredOutputParser.fromZodSchema(
       z.object({
-        isMoneyRelated: z.boolean().describe('是否包含赚钱信息'),
+        isMoneyRelated: z.boolean().describe('是否包含有利可图的信息'),
       }),
     );
     const promptTemplate = new PromptTemplate({
-      template: `你是一个分享赚钱活动的论坛分类系统，请根据标题判断是否包含赚钱信息。
+      template: `你是一个分享赚钱活动的论坛分类系统，请根据标题判断是否包含有利可图的信息。
       请严格按格式返回JSON：{instructions}
 
       标题：{title}

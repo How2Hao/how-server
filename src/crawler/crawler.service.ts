@@ -1,28 +1,35 @@
 import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
+import { Cron, CronExpression, SchedulerRegistry } from '@nestjs/schedule';
 import { CrawlerLogic } from './crawler.logic';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class CrawlerService {
+  private isRunning: boolean = true;
+
   constructor(
     private readonly crawlerLogic: CrawlerLogic,
-    private configService: ConfigService,
+    private readonly schedulerRegistry: SchedulerRegistry,
   ) {}
-  // @Cron(CronExpression.EVERY_MINUTE) // 每分钟执行一次
+  @Cron(CronExpression.EVERY_MINUTE, {
+    name: 'crawler',
+  }) // 每分钟执行一次
   async handleCron() {
-    await this.crawlerLogic.polling();
+    await this.crawlerLogic.run();
   }
 
-  async run() {
-    await this.crawlerLogic.aiAnalysisTitleByLangchin(
-      '广州民生借记卡2元立减金',
-    );
-    // await this.crawlerLogic.aiAnalysisTitleBySiliconflow(
-    //   '广州民生借记卡2元立减金',
-    // );
+  startCron() {
+    const job = this.schedulerRegistry.getCronJob('crawler');
+    this.isRunning = true;
+    job.start();
   }
-  async login() {
-    await this.crawlerLogic.run();
+
+  stopCron() {
+    const job = this.schedulerRegistry.getCronJob('crawler');
+    this.isRunning = false;
+    job.stop();
+  }
+
+  getCronStatus(): boolean {
+    return this.isRunning;
   }
 }
