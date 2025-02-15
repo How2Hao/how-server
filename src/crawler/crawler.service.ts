@@ -10,7 +10,7 @@ export class CrawlerService {
     private readonly crawlerLogic: CrawlerLogic,
     private readonly schedulerRegistry: SchedulerRegistry,
   ) {}
-  @Cron(CronExpression.EVERY_MINUTE, {
+  @Cron(CronExpression.EVERY_5_MINUTES, {
     name: 'crawler',
   }) // 每分钟执行一次
   async handleCron() {
