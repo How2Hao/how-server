@@ -17,11 +17,13 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
-    "psa:ui": "prisma studio",
-    "psa:db": "prisma migrate dev",
-    "psa:gen": "prisma generate",
-    "psa:pull": "prisma db pull",
-    "psa:format": "prisma format"
+    "ps:ui": "prisma studio",
+    "ps:dev": "prisma migrate dev",
+    "ps:gen": "prisma generate",
+    "ps:pull": "prisma db pull",
+    "ps:push": "prisma db push",
+    "ps:deploy": "prisma migrate deploy",
+    "ps:format": "prisma format"
   },
   "dependencies": {
     "@langchain/community": "^0.3.29",
@@ -37,6 +39,7 @@
     "cheerio": "^1.0.0",
     "json5": "^2.2.3",
     "langchain": "^0.3.15",
+    "nestjs-prisma": "^0.24.0",
     "nestjs-zod": "^4.2.0",
     "openai": "^4.83.0",
     "prisma": "^6.3.1",

@@ -14,7 +14,45 @@ datasource db {
 }
 
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id        Int        @id @default(autoincrement()) // 用户的唯一标识符
+  username  String     @unique // 用户名，确保唯一性
+  post      Post[] // 用户发表的文章
+  favorites Favorite[] // 用户收藏的文章
+}
+
+enum SourceType {
+  USER
+  ADMIN
+  EXTERNAL
+}
+
+model Post {
+  id             Int        @id @default(autoincrement())
+  title          String
+  content        String?
+  sourceType     SourceType
+  authorId       Int?
+  author         User?      @relation(fields: [authorId], references: [id])
+  externalAuthor String?
+  externalTid    String?
+  createdAt      DateTime   @default(now()) // 文章创建时间
+  updatedAt      DateTime   @updatedAt // 文章更新时间
+  isPublished    Boolean    @default(false) // 是否已发布（可以用于草稿功能）
+  tags           Tag[]      @relation("PostTags")
+  favorites      Favorite[] // 文章的收藏记录
+}
+
+model Tag {
+  id       Int    @id @default(autoincrement()) // 标签的唯一标识符
+  name     String @unique // 标签名，确保唯一性
+  articles Post[] @relation("PostTags") // 标签对应的文章
+}
+
+model Favorite {
+  id        Int      @id @default(autoincrement()) // 收藏记录的唯一标识符
+  userId    Int // 收藏该文章的用户ID
+  articleId Int // 被收藏的文章ID
+  createdAt DateTime @default(now()) // 收藏时间
+  user      User     @relation(fields: [userId], references: [id]) // 关联用户
+  article   Post     @relation(fields: [articleId], references: [id]) // 关联文章
 }

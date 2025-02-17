@@ -9,7 +9,6 @@ import { md5Encrypt } from 'src/utils';
 import { Parser } from 'xml2js';
 import JSON5 from 'json5';
 import { URL } from 'node:url';
-
 interface ListType {
   title: string;
   href: string;
@@ -116,7 +115,6 @@ export class CrawlerLogic {
         tid,
       });
     }
-    console.log(list);
   }
   /**
    * 检测是否是为活动
