@@ -14,10 +14,22 @@
     "lint:fix": "eslint --fix",
     "postinstall": "pnpx simple-git-hooks"
   },
+  "dependencies": {
+    "@alicloud/pop-core": "^1.8.0",
+    "ali-oss": "^6.23.0",
+    "bcryptjs": "^3.0.3",
+    "better-auth": "^1.7.6",
+    "drizzle-orm": "^0.45.3",
+    "marked": "^18.0.14",
+    "mysql2": "^3.24.4"
+  },
   "devDependencies": {
     "@antfu/eslint-config": "^9.5.1",
+    "@types/bcryptjs": "^3.0.0",
     "@types/node": "latest",
+    "drizzle-kit": "^0.31.11",
     "eslint": "^10.9.1",
+    "jiti": "^2.7.0",
     "lint-staged": "^17.6.0",
     "nitro": "latest",
     "simple-git-hooks": "^2.14.0",
