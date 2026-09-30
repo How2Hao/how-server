@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "antfu": {
+      "source": "antfu/skills",
+      "sourceType": "github",
+      "skillPath": "skills/antfu/SKILL.md",
+      "computedHash": "0aada58e7385bcc85abfd1d184ed7cf3757e1eb9e23d018e44ee6022093c5726"
+    },
     "better-auth-best-practices": {
       "source": "better-auth/skills",
       "sourceType": "github",
