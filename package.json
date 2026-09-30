@@ -1,6 +1,10 @@
 {
   "name": "nitro-starter",
   "type": "module",
+  "packageManager": "pnpm@12.5.1",
+  "imports": {
+    "#*": "./*"
+  },
   "scripts": {
     "build": "nitro build",
     "dev": "nitro dev",
@@ -9,9 +13,6 @@
     "lint:fix": "eslint --fix",
     "postinstall": "pnpx simple-git-hooks"
   },
-  "imports": {
-    "#*": "./*"
-  },
   "devDependencies": {
     "@antfu/eslint-config": "^9.5.1",
     "@types/node": "latest",
@@ -19,7 +20,8 @@
     "lint-staged": "^17.6.0",
     "nitro": "latest",
     "simple-git-hooks": "^2.14.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.2"
   },
   "simple-git-hooks": {
     "pre-commit": "pnpm lint-staged"
