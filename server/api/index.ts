@@ -1,8 +1,5 @@
-import { defineHandler } from "nitro"
+import { defineHandler } from 'nitro'
 
-export default defineHandler((event) => {
-  return { message: "Hello from AssPI!" };
-});
-
-
-
+export default defineHandler(() => {
+  return { message: 'Hello from AssPI!' }
+})

@@ -9,6 +9,7 @@
     "build": "nitro build",
     "dev": "nitro dev",
     "preview": "nitro preview",
+    "test": "vitest",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "postinstall": "pnpx simple-git-hooks"
